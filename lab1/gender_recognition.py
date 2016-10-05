@@ -24,12 +24,12 @@ def pixel_camparision(img):
                     simple_features.append(int(math.fabs(val_i-val_j)<10))
                     simple_features.append(int(math.fabs(val_i-val_j)<25))
                     simple_features.append(int(math.fabs(val_i-val_j)<50))
-                    """ Если используем 10 параметров
+                    """ Если используем 10 параметров"""
                     simple_features.append(int(val_i-val_j<0))
                     simple_features.append(int(math.fabs(val_i-val_j)>5))
                     simple_features.append(int(math.fabs(val_i-val_j)>10))
                     simple_features.append(int(math.fabs(val_i-val_j)>25))
-                    simple_features.append(int(math.fabs(val_i-val_j)>50))"""
+                    simple_features.append(int(math.fabs(val_i-val_j)>50))
     #print(len(simple_features))  
     return simple_features
     #return list
@@ -57,13 +57,13 @@ def do_train_dataset(dataset):
 def main():
 
     print ('20 f, 25 m, 5 par')
-    net = buildNetwork(798000, 3, 1) "798000 = 399 * 400 * 5 ot 1596000 = 399*40*10"
-    dataset = SupervisedDataSet(798000, 1)
+    net = buildNetwork(1596000, 3, 1) """798000 = 399 * 400 * 5 or 1596000 = 399*40*10"""
+    dataset = SupervisedDataSet(1596000, 1)
     dataset = do_train_dataset(dataset)
  
     trainer = BackpropTrainer(net, dataset)
     #trainer.trainUntilConvergence()
-    for epoch in range(50): "Число эпох. Ошибка почти не меняется после 30 эпох"
+    for epoch in range(50): """Число эпох. Ошибка почти не меняется после 30 эпох"""
         trainer.train()
         print('.',end=' ')
     print()
