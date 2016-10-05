@@ -57,13 +57,15 @@ def do_train_dataset(dataset):
 def main():
 
     print ('20 f, 25 m, 5 par')
-    net = buildNetwork(1596000, 3, 1) """798000 = 399 * 400 * 5 or 1596000 = 399*40*10"""
+    net = buildNetwork(1596000, 3, 1)
+    """798000 = 399 * 400 * 5 or 1596000 = 399*40*10"""
     dataset = SupervisedDataSet(1596000, 1)
     dataset = do_train_dataset(dataset)
  
     trainer = BackpropTrainer(net, dataset)
     #trainer.trainUntilConvergence()
-    for epoch in range(50): """Число эпох. Ошибка почти не меняется после 30 эпох"""
+    """Число эпох. Ошибка почти не меняется после 30 эпох"""
+    for epoch in range(50): 
         trainer.train()
         print('.',end=' ')
     print()
