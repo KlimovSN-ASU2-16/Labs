@@ -1,5 +1,8 @@
 import cv2
 import sys
+import math
+import os
+import random as rand
 
 face_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarcascade_eye_tree_eyeglasses.xml')
@@ -10,10 +13,24 @@ nose_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarc
 
 
 def main():
-    img = cv2.imread("1.ppm")
-    find_centres(img)
     
+    os.chdir('./Выборка')
+    for i in os.listdir('./'):
+        img = cv2.imread(i)
+        calculate_distance(find_centres(img))
 
+
+def calculate_distance(centres):
+    distances = list()
+    for centre in centres:
+        j = centres.index(centre)+1
+        while j < len(centres)-1:
+            distances.append(math.sqrt( math.pow(centre[0] - centres[j][0], 2) + math.pow(centre[0] - centres[j][1], 2)))
+            j=j+1
+        
+            
+    print(distances)
+    return distances
     
 
 def find_centres(img):
@@ -27,7 +44,6 @@ def find_centres(img):
      
         cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
         center_face = (x+w//2, y+h//2)
-        print(center_face)
         cv2.circle(img, center_face, 5, (255, 0, 0), 2)
         
         
@@ -62,9 +78,7 @@ def find_centres(img):
         indent_x = x
         indent_y = y+h//2
         bottom_face = img[y+h//2:y+h, x:x+w]
-        cv2.imshow("1", bottom_face)
         smiles = smile_cascade.detectMultiScale(bottom_face, 1.01,  6)
-        print(smiles)
         smile_rect = get_bigger_rectangle(smiles)
         cv2.rectangle(bottom_face, (smile_rect[0], smile_rect[1] ), (smile_rect[0]+smile_rect[2], smile_rect[1]+smile_rect[3]), (255,128 , 128), 2)
         center_smile = (indent_x + smile_rect[0]+smile_rect[2]//2, indent_y + smile_rect[1]+smile_rect[3]//2)
@@ -75,27 +89,33 @@ def find_centres(img):
         indent_x = x+(w//2)//2
         indent_y = y+(h//2)//2
         middle = img[y+(h//2)//2:y+h-((h//2)//2), x+(w//2)//2:x+w-(w//2)//2]
-        noses = nose_cascade.detectMultiScale(middle, 1.05, 6 )
+        noses = nose_cascade.detectMultiScale(middle, 1.01,  6 )
         nose_rect = get_bigger_rectangle(noses)
-        cv2.rectangle(middle, (nose_rect[0], nose_rect[1] ), (nose_rect[0]+nose_rect[2], nose_rect[1]+nose_rect[3]), (255,0 , 255), 2)
+        cv2.rectangle(middle, (nose_rect[0], nose_rect[1] ), (nose_rect[0]+nose_rect[2], nose_rect[1]+nose_rect[3]), (255,128 , 128), 2)
         center_nose = (indent_x + nose_rect[0]+nose_rect[2]//2, indent_y + nose_rect[1]+nose_rect[3]//2)
-        cv2.circle(img, center_nose, 5, (255, 0, 0), 2) 
+        cv2.circle(img, center_nose, 5, (0, 128, 128), 2)
 
-        
-    return dict([("face", center_face), ("left_eye", center_left_eye), ("right_eye", center_right_eye), ("nose", center_nose), ("smile", center_smile)])
+       
+       
+    return [center_face,   center_left_eye,  center_right_eye,  center_nose,  center_smile]
+    #return dict([("face", center_face), ("left_eye", center_left_eye), ("right_eye", center_right_eye), ("nose", center_nose), ("smile", center_smile)])
         
 
 
 def get_bigger_rectangle(rectangles):
+    print(rectangles)
+    
     area = 0
     bigger_rect = rectangles[0]
     for rect in rectangles:
         if(rect[2]*rect[3]>area):
             area=rect[2]*rect[3]
             bigger_rect=rect
-            
+                
     return bigger_rect        
         
+    
+    
         
     
 if __name__=="__main__":
