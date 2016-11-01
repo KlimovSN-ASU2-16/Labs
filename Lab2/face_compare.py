@@ -14,13 +14,31 @@ nose_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarc
 
 def main():
 
+    photo_dict =dict()
     value = 0
     os.chdir('./Выборка')
     for i in os.listdir('./'):
         img = cv2.imread(i)
         cv2.imshow(' ',img)
-        value = normalization(calculate_distance(find_centres(img)))
-
+        photo_dict[i] = normalization(calculate_distance(find_centres(img)))
+        
+    colum_names = os.listdir('./')
+    colum_names.sort()
+   #print(compare(normalization(photo_dict.get("foto1.ppm")), normalization(photo_dict.get("foto2.ppm"))))
+    string = "\t\t"
+    for i in colum_names:
+       string = string + i + " | "
+    print(string)
+    
+    out_string = ""
+    for i in colum_names:
+        out_string += i
+        for j in colum_names:
+            out_string = out_string + "\t" + str(round(compare(photo_dict.get(i),  photo_dict.get(j)), 3)) + "  "  + "\t|"
+            
+        print(out_string)
+        out_string = ""
+    
     """for i in slovar.keys():
         for j in slovar.keys():
             if (j>i):
@@ -30,46 +48,44 @@ def main():
                 print('range between', i, ' and ', j,' = ', ranges)"""
 
 
-def campare (vector1,vector2):
+def compare (vector1,vector2):
     ranges = 0
-    ranges += math.sqr(vector1[k]-vector2[k])
-    ranges = math.sqrt(ranges)/2*100
-    print('range between vectors = ', ranges)
+    for i, j in zip(vector1, vector2):
+        ranges += math.pow(i-j, 2)
+    ranges = abs((math.sqrt(ranges)-1))
     return ranges
 
 def calculate_distance(centres):
+    
     distances = list()
     for centre in centres:
         j = centres.index(centre)+1
-        while j < len(centres)-1:
+        while j < len(centres):
             distances.append(math.sqrt( math.pow(centre[0] - centres[j][0], 2) + math.pow(centre[0] - centres[j][1], 2)))
             j=j+1
     return distances
     
 
 def normalization(distances):
+    norm_dist = list()
     norm = 0
     for distance in distances:
         norm += math.pow(distance,2)
-    norm = math.sqrt(norm)
+    vector_length = math.sqrt(norm)
     for distance in distances:
-        distance = distance/norm
-
-    return distances
+        norm_dist.append(distance/vector_length)
+    
+    return norm_dist
     
 
             
-        
-            
-    print(distances)
-    return distances
+ 
     
 
 def find_centres(img):
     
     
     faces = face_cascade.detectMultiScale(img)
-    print(faces)
     
 
     for (x, y, w, h) in faces:
@@ -135,7 +151,6 @@ def find_centres(img):
 
 
 def get_bigger_rectangle(rectangles):
-    print(rectangles)
     
     area = 0
     bigger_rect = rectangles[0]
