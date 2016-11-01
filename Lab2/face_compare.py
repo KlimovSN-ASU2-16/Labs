@@ -13,11 +13,23 @@ nose_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarc
 
 
 def main():
-    
+
+    #print(face_cascade)
+    slovar = dict()
     os.chdir('./Выборка')
     for i in os.listdir('./'):
         img = cv2.imread(i)
-        calculate_distance(find_centres(img))
+        cv2.imshow(' ',img)
+        slovar [i] = normalization(calculate_distance(find_centres(img)))
+
+    for i in slovar.keys():
+        for j in slovar.keys():
+            if (j>i):
+                for k in slovar.get(i):
+                    ranges += math.sqr(slovar.get(i)[k]-slovar.get(j)[k])
+                ranges = math.sqrt(ranges)/2*100
+                print('range between', i, ' and ', j,' = ', ranges)
+
 
 
 def calculate_distance(centres):
@@ -27,6 +39,20 @@ def calculate_distance(centres):
         while j < len(centres)-1:
             distances.append(math.sqrt( math.pow(centre[0] - centres[j][0], 2) + math.pow(centre[0] - centres[j][1], 2)))
             j=j+1
+    return distances
+    
+
+def normalization(distances):
+    for distance in distances:
+        norm += math.pow(distance,2)
+    norm = math.sqrt(norm)
+    for distance in distances:
+        distance = distance/norm
+
+    return distances
+    
+
+            
         
             
     print(distances)
