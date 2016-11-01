@@ -14,23 +14,28 @@ nose_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarc
 
 def main():
 
-    #print(face_cascade)
-    slovar = dict()
+    value = 0
     os.chdir('./Выборка')
     for i in os.listdir('./'):
         img = cv2.imread(i)
         cv2.imshow(' ',img)
-        slovar [i] = normalization(calculate_distance(find_centres(img)))
+        value = normalization(calculate_distance(find_centres(img)))
 
-    for i in slovar.keys():
+    """for i in slovar.keys():
         for j in slovar.keys():
             if (j>i):
                 for k in slovar.get(i):
                     ranges += math.sqr(slovar.get(i)[k]-slovar.get(j)[k])
                 ranges = math.sqrt(ranges)/2*100
-                print('range between', i, ' and ', j,' = ', ranges)
+                print('range between', i, ' and ', j,' = ', ranges)"""
 
 
+def campare (vector1,vector2):
+    ranges = 0
+    ranges += math.sqr(vector1[k]-vector2[k])
+    ranges = math.sqrt(ranges)/2*100
+    print('range between vectors = ', ranges)
+    return ranges
 
 def calculate_distance(centres):
     distances = list()
@@ -43,6 +48,7 @@ def calculate_distance(centres):
     
 
 def normalization(distances):
+    norm = 0
     for distance in distances:
         norm += math.pow(distance,2)
     norm = math.sqrt(norm)
