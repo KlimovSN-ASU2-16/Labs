@@ -22,8 +22,11 @@ def main():
         cv2.imshow(' ',img)
         photo_dict[i] = normalization(calculate_distance(find_centres(img)))
         
+        
     colum_names = os.listdir('./')
     colum_names.sort()
+    
+    print(compare(photo_dict.get('foto1.ppm'), photo_dict.get('foto9.ppm')))
    #print(compare(normalization(photo_dict.get("foto1.ppm")), normalization(photo_dict.get("foto2.ppm"))))
     string = "\t\t"
     for i in colum_names:
@@ -34,7 +37,7 @@ def main():
     for i in colum_names:
         out_string += i
         for j in colum_names:
-            out_string = out_string + "\t" + str(round(compare(photo_dict.get(i),  photo_dict.get(j)), 3)) + "  "  + "\t|"
+            out_string = out_string + "\t" + str(round(compare(photo_dict.get(i),  photo_dict.get(j)), 3)) + ""  + "\t|"
             
         print(out_string)
         out_string = ""
@@ -50,9 +53,10 @@ def main():
 
 def compare (vector1,vector2):
     ranges = 0
-    for i, j in zip(vector1, vector2):
-        ranges += math.pow(i-j, 2)
-    ranges = abs((math.sqrt(ranges)-1))
+    for i in range(len(vector1)):
+        ranges += math.pow(vector1[i]-vector2[i], 2)
+        #print (vector1[i],' ', vector2[i],' ', math.pow(vector1[i]-vector2[i], 2))
+    ranges = abs((math.sqrt(ranges))*100-100)
     return ranges
 
 def calculate_distance(centres):
