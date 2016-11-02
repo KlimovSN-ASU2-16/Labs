@@ -4,6 +4,7 @@ import math
 import os
 import random as rand
 
+#Каскады Хаара
 face_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarcascade_eye_tree_eyeglasses.xml')
 smile_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarcascade_mcs_mouth.xml')
@@ -14,25 +15,23 @@ nose_cascade = cv2.CascadeClassifier('/usr/local/share/OpenCV/haarcascades/haarc
 
 def main():
 
-    photo_dict =dict()
-    value = 0
+    photo_dict =dict() #Словарь для хранния фотографий и их нормализованных вкторов
     os.chdir('./Выборка')
     for i in os.listdir('./'):
         img = cv2.imread(i)
-        cv2.imshow(' ',img)
-        photo_dict[i] = normalization(calculate_distance(find_centres(img)))
+        photo_dict[i] = normalization(calculate_distance(find_centres(img))) #заполнения словаря данными
         
-        
+    
     colum_names = os.listdir('./')
     colum_names.sort()
     
-    print(compare(photo_dict.get('foto1.ppm'), photo_dict.get('foto9.ppm')))
-   #print(compare(normalization(photo_dict.get("foto1.ppm")), normalization(photo_dict.get("foto2.ppm"))))
+    #Имена столбцов таблицы
     string = "\t\t"
     for i in colum_names:
        string = string + i + " | "
     print(string)
     
+    #Вывод данных в консоль в виде таблицы
     out_string = ""
     for i in colum_names:
         out_string += i
@@ -41,24 +40,17 @@ def main():
             
         print(out_string)
         out_string = ""
-    
-    """for i in slovar.keys():
-        for j in slovar.keys():
-            if (j>i):
-                for k in slovar.get(i):
-                    ranges += math.sqr(slovar.get(i)[k]-slovar.get(j)[k])
-                ranges = math.sqrt(ranges)/2*100
-                print('range between', i, ' and ', j,' = ', ranges)"""
 
-
-def compare (vector1,vector2):
+#нахождение расстояния между точками (корень разности квадратов)
+def compare (vector1,vector2): 
     ranges = 0
     for i in range(len(vector1)):
-        ranges += math.pow(vector1[i]-vector2[i], 2)
-        #print (vector1[i],' ', vector2[i],' ', math.pow(vector1[i]-vector2[i], 2))
-    ranges = abs((math.sqrt(ranges))*100-100)
+        ranges += math.pow(vector1[i]-vector2[i], 2) 
+        
+    ranges = abs((math.sqrt(ranges))*100-100) #преобразование результата в процент похожести
     return ranges
 
+#Вычисление расстояния между центрами
 def calculate_distance(centres):
     
     distances = list()
@@ -69,15 +61,15 @@ def calculate_distance(centres):
             j=j+1
     return distances
     
-
+#нормализация полученных векторов
 def normalization(distances):
     norm_dist = list()
     norm = 0
     for distance in distances:
-        norm += math.pow(distance,2)
-    vector_length = math.sqrt(norm)
+        norm += math.pow(distance,2) #Сумма квадратов для длины вектора
+    vector_length = math.sqrt(norm) #получение длины вектора
     for distance in distances:
-        norm_dist.append(distance/vector_length)
+        norm_dist.append(distance/vector_length) #получение единичного вектора
     
     return norm_dist
     
@@ -85,13 +77,12 @@ def normalization(distances):
             
  
     
-
+#Нахождение центров
 def find_centres(img):
     
-    
+    #Нахождение лиц
     faces = face_cascade.detectMultiScale(img)
     
-
     for (x, y, w, h) in faces:
      
         cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
@@ -103,8 +94,9 @@ def find_centres(img):
         indent_x = x
         indent_y = y
         
-        upper_left_face = img[y:y+h//2, x:x+w//2]
-
+        upper_left_face = img[y:y+h//2, x:x+w//2] #левый верхний угол лица, как точка отсчта координат центров
+        
+        #Нахождение глаз
         left_eyes = eye_cascade.detectMultiScale(upper_left_face, 1.01,  6)
         for (le_x, le_y, le_w, le_h) in left_eyes:
             cv2.rectangle(upper_left_face, (le_x, le_y), (le_x+le_w, le_y+le_h), (255, 255, 0), 2)
