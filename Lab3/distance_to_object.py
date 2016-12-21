@@ -3,73 +3,105 @@ import math
 import cv2
 from matplotlib import pyplot as plt
 
-def main():
-
-    img1 = cv2.imread('iron.jpg')         
-    img2 = cv2.imread('iron_1.jpg') 
-    img3 = cv2.imread('iron_2.jpg')
+def main():                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+    img1 = cv2.imread('box.png')         
+    img2 = cv2.imread('2м_2.JPG')
 
     # Initiate SIFT detector
-    sift = cv2.xfeatures2d.SIFT_create()
+    sift = cv2.xfeatures2d.SIFT_create()                                                                                                                                                                                                        
 
     # find the keypoints and descriptors with SIFT
     kp1, des1 = sift.detectAndCompute(img1,None)
     kp2, des2 = sift.detectAndCompute(img2,None)
-    kp3, des3 = sift.detectAndCompute(img3, None)
-
+    
     # FLANN parameters
     FLANN_INDEX_KDTREE = 0
-    index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 2)
-    search_params = dict()   # or pass empty dictionary
+    index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
+    search_params = dict(check = 50)   # or pass empty dictionary
 
     flann = cv2.FlannBasedMatcher(index_params,search_params)
 
-    matches = flann.knnMatch(des1,des2,k=2)
-    matches2 = flann.knnMatch(des1, des3, k=2)
 
+    matches = flann.knnMatch(des1,des2,k=2)
+    
     points = []
+    good=[]
     for m,n in matches:
         if m.distance < 0.7*n.distance:
+            good.append(m)
             points.append(kp2[m.trainIdx].pt)
             
-    avarage_point1 = get_avarage_point(points)
-            
-    points2 = []
-    for m,n in matches2:
-        if m.distance < 0.7*n.distance:
-            points2.append(kp3[m.trainIdx].pt)
-            
-    avarage_point2 = get_avarage_point(points2)
-    print(avarage_point1)
-    print(avarage_point2)
+    if len(good)>10:
+        src_pts = np.float32([kp1[m.queryIdx].pt for m in good ]).reshape(-1, 1, 2)
+        dst_pts = np.float32([kp2[m.trainIdx].pt for m in good ]).reshape(-1, 1, 2)
+        
+        M, mask = cv2.findHomography(src_pts, dst_pts,  cv2.RANSAC, 5.0)
+        matchesMask = mask.ravel().tolist()
+        
+        h, w, d = img1.shape
+        pts = np.float32([ [0,0], [0, h-1], [w-1, h-1], [w-1, 0] ]).reshape(-1, 1, 2)
+        dst = cv2.perspectiveTransform(pts, M)
     
-    distance_between_cameras = 200
-    focus_distance = 55
-    distance_to_object = (distance_between_cameras*focus_distance)/(avarage_point1[0]-avarage_point2[0])
-    distance_to_object2= (distance_between_cameras * 1280) / (math.atan(3)*(avarage_point1[0]-avarage_point2[0]))
-    print("Расстояние до объекта 2 = " + str(distance_to_object2))
+        width_box_pixels = dst[3][0][0]-dst[0][0][0]
+        width_picture = len(img2[0])
+        angle_camera = 60
+        
+        print(dst)
+        print("width_box" + str(width_box_pixels))
+        angle_box = width_box_pixels * angle_camera / width_picture
+        
+        print("angle_box " + str(angle_box))
+        center_x = width_picture/2
+        center_y = len(img2)/2
+        
+        print("center x " + str(center_x))
 
-    print("Расстояние до объекта = " + str(distance_to_object))
-            
+        dist1 =float(abs(dst[3][0][0]-center_x))
+        dist2 = float(abs(dst[0][0][0]-center_x))
+        print("dists " + str(dist1) + " " + str(dist2))
+        distance_to_box_about_center = 0
+        if dist1 > dist2:
+            distance_to_box_about_center = dist2
+        else:
+            distance_to_box_about_center = dist1
+        
+        print("distance_to_box_about_center" + str(distance_to_box_about_center))
+        
+        
+        angle_not_box = distance_to_box_about_center*angle_camera/width_picture
+        print("angle_not_box" + str(angle_not_box))
+        
+        shared_angle = angle_box+angle_not_box
+        print("shared_angle " + str(shared_angle))
+        
+        width_box_mm = 225
+        distance_to_box_about_center_real= distance_to_box_about_center*width_box_mm/width_box_pixels
+        print("distance_to_box_about_center_real " + str(distance_to_box_about_center_real))
+        
+        
+        width = width_box_mm+ distance_to_box_about_center_real
+        
+        print("widht " + str(width))
+        
+        shared_angle_radians = shared_angle*math.pi/180
+        distance_to_object=width/math.tan(shared_angle_radians)
+        print(round(distance_to_object/10, 2))
 
-            
-    cv2.circle(img2, (int(avarage_point1[0]), int(avarage_point1[1])), 6, (244, 255, 0))
+        img2 = cv2.polylines(img2, [np.int32(dst)],  True, 255, 3,  cv2.LINE_AA)
     
-    cv2.circle(img3, (int(avarage_point2[0]), int(avarage_point2[1])), 6, (244, 255, 0))
-    cv2.imshow("", img2)
-    cv2.imshow("2", img3)
+        cv2.imshow(" ", img2)
+            
+            
+            
+            
+            
+            
+            
+            
+            
+    
     cv2.waitKey(0)        
 
-
-def get_avarage_point(points):
-    sum_x = 0
-    sum_y = 0
-    for x,y in points:
-        sum_x = sum_x + x
-        sum_y = sum_y + y
-    center_x = sum_x/len(points)
-    center_y = sum_y/len(points)
-    return (center_x, center_y)
 
 if __name__=='__main__':
     main()
